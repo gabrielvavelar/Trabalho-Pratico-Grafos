@@ -58,52 +58,52 @@ void calculaDistanciaGeo() {
 }
 
 void leArquivoEntrada(string arquivoEntrada){
-	ifstream arquivo(arquivoEntrada);
-	int dimension;
-	string linha, edgeWeightType;
+    ifstream arquivo(arquivoEntrada);
+    int dimension;
+    string linha, edgeWeightType;
 	
-	if(arquivo.is_open()) {
-		while (getline(arquivo, linha)) {
+    if(arquivo.is_open()) {
+        while (getline(arquivo, linha)) {
 			
-			if (linha.find("DIMENSION") != string::npos) {
-					dimension = stoi(linha.substr(linha.find(":") + 1));
-			} 
+            if (linha.find("DIMENSION") != string::npos) {
+                dimension = stoi(linha.substr(linha.find(":") + 1));
+            }
 			
-			else if(linha.find("EDGE_WEIGHT_TYPE") != string::npos) {
+            else if(linha.find("EDGE_WEIGHT_TYPE") != string::npos) {
                 edgeWeightType = linha.substr(linha.find(":") + 1);
                 edgeWeightType.erase(0, edgeWeightType.find_first_not_of(" \t"));
             }
             
             else if(linha.find("NODE_COORD_SECTION") != string::npos) {
-				coordenadas.resize(dimension);
+                coordenadas.resize(dimension);
 				
-				while(getline(arquivo,linha)) {
-					if (linha.find("EOF") != string::npos) 
-						break; 
+                while(getline(arquivo,linha)) {
+                    if (linha.find("EOF") != string::npos) 
+                        break; 
 						
-					stringstream ss(linha);
-					int index;
-					double x, y;
+                    stringstream ss(linha);
+                    int index;
+                    double x, y;
 					
-					ss >> index >> x >> y;
+                    ss >> index >> x >> y;
                     coordenadas[index - 1] = {x, y};		
                 }			
-			}	
-		}
+            }	
+        }
 
-		if (edgeWeightType == "EUC_2D")
+        if (edgeWeightType == "EUC_2D")
             calculaDistanciaEuc();
         else if (edgeWeightType == "GEO")
             calculaDistanciaGeo();
         else 
-			cout << "Tipo de peso de aresta nao suportado" << endl;
+            cout << "Tipo de peso de aresta nao suportado" << endl;
 
-		arquivo.close();
+        arquivo.close();
 	}
 
-	else {
-		cout << "Erro ao ler arquivo" << endl;
-	}	
+    else {
+        cout << "Erro ao ler arquivo" << endl;
+    }		
 }
 
 void salvaSolucaoEmArquivo(string arquivoSaida) {
@@ -128,7 +128,7 @@ void salvaSolucaoEmArquivo(string arquivoSaida) {
 
 void leEntradaPadrao() {
     int dimension;
-	string edgeWeightType;
+    string edgeWeightType;
 	
     cout << "Dimension: ";
     cin >> dimension;
@@ -140,8 +140,8 @@ void leEntradaPadrao() {
 
     for(int i = 0; i < dimension; i++) {
         int index;
-		double x, y;
-		cin >> index >> x >> y;
+        double x, y;
+        cin >> index >> x >> y;
         coordenadas[index - 1] = {x, y};
     }
 
@@ -150,7 +150,7 @@ void leEntradaPadrao() {
     else if (edgeWeightType == "GEO")
         calculaDistanciaGeo();
     else 
-		cout << "Tipo de peso de aresta nao suportado" << endl;
+        cout << "Tipo de peso de aresta nao suportado" << endl;
 }
 
 void imprimeSolucao() {
@@ -414,12 +414,12 @@ int main() {
     string arquivoEntrada, arquivoSaida;
     //cout << "Arquivo de entrada: ";
     //cin >> arquivoEntrada;
-
-	cout << endl << "Arquivo de saida: ";
-	cin >> arquivoSaida;
+	
+    cout << endl << "Arquivo de saida: ";
+    cin >> arquivoSaida;
 
     int numeroDeInteracoes;
-	cout << "Numero de interacoes do algoritmo (sugestao: 10): ";
+    cout << "Numero de interacoes do algoritmo (sugestao: 10): ";
     cin >> numeroDeInteracoes;
 
     //leArquivoEntrada(arquivoEntrada);
