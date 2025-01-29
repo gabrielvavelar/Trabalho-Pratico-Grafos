@@ -11,10 +11,11 @@
 
 using namespace std;
 
-vector<pair<double, double>> coordenadas;
-vector<vector<int>> matrizDeDistancias;
-vector<int> rota;
+vector<pair<double, double>> coordenadas; // Vetor de coordenadas dos vértices
+vector<vector<int>> matrizDeDistancias; // Matriz de distâncias entre os vértices
+vector<int> rota; // Vetor representando o ciclo Hamiltoniano
 
+// Calcula a distância euclidiana entre os pontos
 void calculaDistanciaEuc() {
     int n = coordenadas.size();
     matrizDeDistancias.resize(n, vector<int>(n));
@@ -26,6 +27,7 @@ void calculaDistanciaEuc() {
     }
 }
 
+// Calcula a distância geográfica entre os pontos
 void calculaDistanciaGeo() {
     const double RADIUS = 6371.0;
 
@@ -57,6 +59,7 @@ void calculaDistanciaGeo() {
     }
 }
 
+// Lê um arquivo TSP no formato padrão
 void leArquivoEntrada(string arquivoEntrada){
     ifstream arquivo(arquivoEntrada);
     int dimension;
@@ -106,6 +109,7 @@ void leArquivoEntrada(string arquivoEntrada){
     }		
 }
 
+// Salva a rota encontrada em um arquivo
 void salvaSolucaoEmArquivo(string arquivoSaida) {
     ofstream arquivo(arquivoSaida);
 
@@ -126,6 +130,7 @@ void salvaSolucaoEmArquivo(string arquivoSaida) {
     arquivo.close();
 }
 
+// Lê os dados de entrada do usuário via entrada padrão no console
 void leEntradaPadrao() {
     int dimension;
     string edgeWeightType;
@@ -153,6 +158,7 @@ void leEntradaPadrao() {
         cout << "Tipo de peso de aresta nao suportado" << endl;
 }
 
+// Imprime a rota encontrada no console
 void imprimeSolucao() {
 	int n = matrizDeDistancias.size(); 
     for (int i = 0; i < n; i++) {
@@ -162,6 +168,7 @@ void imprimeSolucao() {
     }
 }
 
+// Encontra um limite superior para o problema usando Nearest Neighbor
 int encontraLimiteSuperior() {
     int n = matrizDeDistancias.size(); 
     vector<bool> visitado(n, false);
@@ -191,6 +198,7 @@ int encontraLimiteSuperior() {
     return limiteSuperior;
 } 
 
+// Encontra um limite inferior para o problema 
 int encontraLimiteInferior() {
     int n = matrizDeDistancias.size();
     int maxCusto = -INT_MAX;
@@ -218,6 +226,7 @@ int encontraLimiteInferior() {
     return maxCusto;
 }
 
+//  Calcula o custo total da ciclo
 int calculaCustoTotal() {
     int distanciaTotal = 0;
     int n = matrizDeDistancias.size();
@@ -227,6 +236,7 @@ int calculaCustoTotal() {
     return distanciaTotal;
 }
 
+// Calcula o valor da maior aresta contida no ciclo
 int calculaMaiorAresta() {
     int maiorAresta = 0;
     int n = matrizDeDistancias.size();
@@ -239,6 +249,7 @@ int calculaMaiorAresta() {
     return maiorAresta;
 }
 
+// Inverte um segmento da rota entre os índices 'inicio' e 'fim'.
 void inverteSegmento(int inicio, int fim) {
     int atual = inicio;
     int proximo = rota[inicio];
@@ -253,6 +264,7 @@ void inverteSegmento(int inicio, int fim) {
     } while (atual != fim);
 }
 
+// Valida se a rota é um ciclo Hamiltoniano válido
 bool validaRota() {
     int n = matrizDeDistancias.size();
     vector<bool> visitados(n, false);
@@ -274,6 +286,7 @@ pair<int, int> criaParOrdenado(int x, int y) {
         return make_pair(y, x);
 }
 
+// Algoritmo de Lin-Kernighan para otimizar o ciclo
 void linKernighan(int inicio) {
     set<pair<int,int>> arestasRemovidas, arestasAdicionadas;
     pair<int, int> arestaRemovida;
@@ -292,13 +305,14 @@ void linKernighan(int inicio) {
 
         arestaRemovida = criaParOrdenado(lastproximoVertice, fromV);
         valorArestaRemovida = matrizDeDistancias[arestaRemovida.first][arestaRemovida.second];
-
+	// Evita ciclos revisando arestas já modificadas
         if (arestasAdicionadas.count(arestaRemovida) > 0) 
             break;
-        
+        // Procura por trocas que ofereçam ganho positivo 
         for (int possibleproximoVertice = rota[fromV]; proximoVertice == -1 and possibleproximoVertice != inicio; possibleproximoVertice = rota[possibleproximoVertice]) {
             ganhoLocal = valorArestaRemovida - matrizDeDistancias[fromV][possibleproximoVertice];
-
+		
+            // Critérios para aceitar a troca
             if(!(
                 arestasRemovidas.count(criaParOrdenado(fromV, possibleproximoVertice)) == 0 and
                 ganho + ganhoLocal > 0 and
@@ -314,13 +328,15 @@ void linKernighan(int inicio) {
         }
 
         if (proximoVertice != -1) {
+ 	    // Atualiza estruturas de controle de arestas
             arestasRemovidas.insert(arestaRemovida);
             arestasAdicionadas.insert(criaParOrdenado(fromV, proximoVertice));
-
+		
+	    // Calcula o melhor ganho possível com esta troca
             melhorCusto = matrizDeDistancias[fromV][inicio];
-      
             melhorGanhoLocal = ganho + (valorArestaRemovida - melhorCusto);
-
+		
+            // Atualiza a melhor solução encontrada
             if (melhorGanhoLocal > melhorGanho) {
                 melhorGanho = melhorGanhoLocal;
                 novaRota = rota;
@@ -328,7 +344,8 @@ void linKernighan(int inicio) {
             }
 
             ganho += valorArestaRemovida - matrizDeDistancias[fromV][proximoVertice];
-
+		
+	    // Inverte o segmento da rota para realizar a troca
             inverteSegmento(fromV, ultimoCadindatoProximoV);
 
             proximoVerticeInicial = ultimoCadindatoProximoV;
@@ -343,11 +360,13 @@ void linKernighan(int inicio) {
 
     rota = novaRota;
     int distanceAfter = calculaCustoTotal();
-
+	
+   // Garante que a otimização não aumentou o custo e que a rota é válida
     assert(distanceAfter <= initialTourDistance);
     assert (validaRota());
 }
 
+// Aplica o algoritmo de Lin-Kernighan várias vezes para melhorar a rota
 void MelhoraRota(int numeroDeInteracoes) {
     int diferenca;
     int custoAnterior = 0;
@@ -361,6 +380,7 @@ void MelhoraRota(int numeroDeInteracoes) {
         custoAtual = calculaCustoTotal();
         diferenca = custoAnterior - custoAtual;
 
+	// Para se não houver mais melhorias
         if (i != 0) {
             assert(diferenca >= 0);
             if (diferenca == 0 or custoAnterior == 0) 
@@ -371,6 +391,7 @@ void MelhoraRota(int numeroDeInteracoes) {
     }
 }
 
+// Inicializa a rota como uma sequência simples 0->1->2->...->n->0 formando um ciclo
 void inicializaRota() {   
     int n = matrizDeDistancias.size();
     rota = vector<int>(n, 0);
@@ -379,18 +400,25 @@ void inicializaRota() {
         rota[i] = (i + 1) % n;
 }
 
+// Minimiza a maior aresta presente na solução
+// 1. Em cada iteração, define um valor intermediário (mid) utilizando limiteInferior e limiteSuperior e cria uma matriz auxiliar onde distâncias <= mid são consideradas 0
+// 2. Chama MelhoraRota para verificar se é possível encontrar uma solução viável sem usar arestas maiores que mid
+// 2. Se a solução encontrada não utilizar nenhuma aresta com valor maior que mid (custoTotal == 0), significa que mid ainda pode ser reduzido. Caso contrário, mid é aumentado
+// 4. O processo se repete até que o menor limite superior viável seja encontrado
 void minimizaMaiorAresta(int numeroDeInteracoes) {
     inicializaRota();
 
     int limiteInferior = encontraLimiteInferior();
     auto limiteSuperior = encontraLimiteSuperior();
 
+    // Busca binária para encontrar o menor limite superior viável
     while(limiteInferior < limiteSuperior) {
         int mid = (limiteInferior + limiteSuperior) / 2;
 
         vector<vector<int>> aux = matrizDeDistancias;
         int n = aux.size();
-
+	    
+	// Cria uma matriz auxiliar onde distâncias <= mid são consideradas 0
         for(int i = 0; i < n; i++) {
             for(int j = 0; j < n; j++) {
                 if(aux[i][j] <= mid)
@@ -401,7 +429,7 @@ void minimizaMaiorAresta(int numeroDeInteracoes) {
         swap(matrizDeDistancias, aux);
         MelhoraRota(numeroDeInteracoes);
         int custoTotal = calculaCustoTotal();
-        swap(matrizDeDistancias, aux);
+        swap(matrizDeDistancias, aux); // Restaura a matriz original
 
         if(custoTotal == 0) 
             limiteSuperior = mid; 
@@ -412,6 +440,7 @@ void minimizaMaiorAresta(int numeroDeInteracoes) {
 
 int main() { 
     string arquivoEntrada, arquivoSaida;
+    // Descomente para entrada via arquivo
     //cout << "Arquivo de entrada: ";
     //cin >> arquivoEntrada;
 	
@@ -423,7 +452,7 @@ int main() {
     cin >> numeroDeInteracoes;
 
     //leArquivoEntrada(arquivoEntrada);
-    leEntradaPadrao();
+    leEntradaPadrao(); // Comente esta linha se for usar arquivo
     
     auto inicio = chrono::high_resolution_clock::now();
 
